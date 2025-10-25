@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.future import select
-from .models import User
-from .database import async_session
-from .utils import hash_password, verify_password, create_token
+from src.models import User
+from src.database import async_session
+from src.utils import hash_password, verify_password, create_token
 
 router = APIRouter(prefix="/auth")
 

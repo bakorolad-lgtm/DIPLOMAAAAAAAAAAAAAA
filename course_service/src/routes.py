@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from .database import async_session
-from .models import Course
+from src.database import async_session
+from src.models import Course
 from sqlalchemy.future import select
 
 router = APIRouter(prefix="/courses")
