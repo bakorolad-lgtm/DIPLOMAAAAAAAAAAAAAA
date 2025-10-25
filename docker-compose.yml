@@ -1,0 +1,64 @@
+version: "3.9"
+services:
+  api-gateway:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth-service
+      - course-service
+      - quiz-service
+
+  auth-service:
+    build: .
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:pass@db-auth:5433/authdb
+    depends_on:
+      - db-auth
+
+  course-service:
+    build: .
+    ports:
+      - "8002:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:pass@db-course:5434/coursedb
+    depends_on:
+      - db-course
+
+  quiz-service:
+    build: .
+    ports:
+      - "8003:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:pass@db-quiz:5435/quizdb
+    depends_on:
+      - db-quiz
+
+  db-auth:
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: authdb
+    ports:
+      - "5433:5432"
+
+  db-course:
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: coursedb
+    ports:
+      - "5434:5432"
+
+  db-quiz:
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: quizdb
+    ports:
+      - "5435:5432"
