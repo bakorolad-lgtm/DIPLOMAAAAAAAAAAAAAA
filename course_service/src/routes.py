@@ -2,10 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException
 from .models import Course
 from .database import async_session
 from sqlalchemy.future import select
-from user_service.deps import require_role, get_current_user
+import httpx
+from fastapi import Depends, HTTPException, Header
 
 router = APIRouter(prefix="/courses")
 
+AUTH_SERVICE_URL = "http://user-service:8000"
+
+async def get_current_user(token: str = Header(...)):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"{AUTH_SERVICE_URL}/auth/me", headers={"Authorization": token})
+        if response.status_code != 200:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return response.json()
+    
 @router.get("/")
 async def list_courses():
     async with async_session() as session:
