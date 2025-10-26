@@ -1,18 +1,23 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from sqlalchemy.future import select
-from src.models import User
-from src.database import async_session
-from src.utils import hash_password, verify_password, create_token
+from .database import async_session
+from .models import User
+from .utils import hash_password, verify_password, create_access_token
 
 router = APIRouter(prefix="/auth")
 
 @router.post("/register")
-async def register(email: str, password: str):
+async def register(email: str, password: str, role: str = "student"):
     async with async_session() as session:
-        user = User(email=email, password=hash_password(password))
+        # проверка на существующий
+        result = await session.execute(select(User).where(User.email == email))
+        existing = result.scalar_one_or_none()
+        if existing:
+            raise HTTPException(status_code=400, detail="User already exists")
+        user = User(email=email, password=hash_password(password), role=role)
         session.add(user)
         await session.commit()
-        return {"message": "User registered"}
+        return {"message": "registered"}
 
 @router.post("/login")
 async def login(email: str, password: str):
@@ -21,5 +26,5 @@ async def login(email: str, password: str):
         user = result.scalar_one_or_none()
         if not user or not verify_password(password, user.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
-        token = create_token(user.id, user.role)
-        return {"token": token}
+        token = create_access_token({"id": user.id, "role": user.role})
+        return {"access_token": token, "token_type": "bearer"}

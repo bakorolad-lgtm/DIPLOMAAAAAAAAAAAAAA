@@ -6,4 +6,4 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
-    role = Column(String, default="student")
+    role = Column(String, nullable=False, default="student")

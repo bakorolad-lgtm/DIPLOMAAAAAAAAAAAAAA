@@ -1,20 +1,22 @@
-from fastapi import APIRouter
-from src.database import async_session
-from src.models import Course
+from fastapi import APIRouter, Depends, HTTPException
+from .models import Course
+from .database import async_session
 from sqlalchemy.future import select
+from user_service.deps import require_role, get_current_user
 
 router = APIRouter(prefix="/courses")
 
 @router.get("/")
-async def get_courses():
+async def list_courses():
     async with async_session() as session:
-        result = await session.execute(select(Course))
-        return result.scalars().all()
+        r = await session.execute(select(Course))
+        return r.scalars().all()
 
 @router.post("/")
-async def create_course(title: str, description: str, author_id: int):
+async def create_course(title: str, description: str, user = Depends(require_role(["teacher", "admin"]))):
     async with async_session() as session:
-        course = Course(title=title, description=description, author_id=author_id)
-        session.add(course)
+        c = Course(title=title, description=description, author_id=user.id)
+        session.add(c)
         await session.commit()
-        return {"message": "Course created"}
+        await session.refresh(c)
+        return {"id": c.id, "title": c.title}
