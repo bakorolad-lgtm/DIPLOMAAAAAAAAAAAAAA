@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, Response, Header
 import httpx
 import os
 from src.schemas import CreateQuizSchema, QuizAnswerSchema
+import json
 
 app = FastAPI(title="API Gateway")
 
@@ -11,18 +12,46 @@ COURSE_SERVICE = os.getenv("COURSE_SERVICE", "http://course-service:8000")
 QUIZ_SERVICE = os.getenv("QUIZ_SERVICE", "http://quiz-service:8000")
 
 # Generic proxy helper that forwards Authorization header and body
+
+
 async def forward_request(method: str, url: str, request: Request, auth: str | None = None):
-    headers = {}
+    # Передаём все заголовки
+    headers = dict(request.headers)
     if auth:
         headers["Authorization"] = auth
-    # copy other headers if needed (Content-Type is usually enough)
-    if "content-type" in request.headers:
-        headers["content-type"] = request.headers["content-type"]
 
-    body = await request.body()
+    # Извлекаем query параметры
+    query_params = dict(request.query_params)
+
+    # Извлекаем тело запроса
+    raw_body = await request.body()
+    content_type = request.headers.get("content-type", "")
+
     async with httpx.AsyncClient() as client:
-        r = await client.request(method, url, headers=headers, content=body, timeout=30.0)
-        return Response(content=r.content, status_code=r.status_code, headers=r.headers)
+        if "application/json" in content_type and raw_body:
+            try:
+                json_body = json.loads(raw_body)
+            except json.JSONDecodeError:
+                json_body = None
+        else:
+            json_body = None
+
+        response = await client.request(
+            method=method,
+            url=url,
+            headers=headers,
+            params=query_params,
+            json=json_body,
+            content=None if json_body else raw_body,
+            timeout=30.0,
+        )
+
+    return Response(
+        content=response.content,
+        status_code=response.status_code,
+        headers={"content-type": response.headers.get("content-type", "application/json")},
+    )
+
 
 @app.post("/auth/{path:path}")
 async def proxy_auth(path: str, request: Request):
