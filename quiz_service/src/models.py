@@ -13,4 +13,5 @@ class QuizAnswers(Base):
     id = Column(Integer, primary_key=True)
     quiz_id = Column(ForeignKey("quizzes.id"))
     question_id = Column(Integer)
+    user_id = Column(Integer)
     answer = Column(String)

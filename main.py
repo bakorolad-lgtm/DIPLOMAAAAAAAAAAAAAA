@@ -1,4 +1,9 @@
-from uvicorn import run
+from user_service.src.utils import create_token, decode_token
 
-if __name__=="__main__":
-    pass
+
+
+token = create_token(1, "admin")
+
+print(token)
+print(decode_token(token))
+
