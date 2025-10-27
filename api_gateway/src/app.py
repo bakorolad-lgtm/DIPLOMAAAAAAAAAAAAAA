@@ -2,7 +2,7 @@ from fastapi import Header
 from fastapi import FastAPI, Request
 import httpx
 
-from src.schemas import CreateCourseSchema, CreateQuizSchema, QuizAnswerSchema
+from src.schemas import CreateCourseSchema, CreateQuizSchema, GetCourseSchema, GetQuizCheckAnswers, GetQuizSchema, QuizAnswerSchema
 
 app = FastAPI(title="API Gateway")
 
@@ -14,7 +14,6 @@ QUIZ_SERVICE = "http://quiz-service:8000"
 @app.post("/auth/{path:path}")
 async def proxy_auth(path: str, request: Request):
     data = await request.json()
-    print(data)
     async with httpx.AsyncClient() as client:
         r = await client.post(f"{AUTH_SERVICE}/auth/{path}", params=data)
         return r.json()
@@ -30,19 +29,33 @@ async def create_course(course: CreateCourseSchema, token: str = Header(alias="A
         return r.json()
 
 
-@app.get("/courses")
+@app.get("/courses/{course_id}", response_model=GetCourseSchema)
+async def get_course(course_id):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(f"{COURSE_SERVICE}/courses/{course_id}")
+        return r.json()
+
+@app.get("/courses", response_model=list[GetCourseSchema])
 async def get_courses():
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{COURSE_SERVICE}/courses")
         return r.json()
 
 
-@app.get("/quiz")
+@app.get("/quiz", response_model=list[GetQuizSchema])
 async def get_quizzes():
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{QUIZ_SERVICE}/quiz")
         response = r.json()
-        response.pop("correct_answer")
+        print(response)
+        print(type(response))
+        result = []
+        for quiz in response:
+            for question in quiz["questions"]:
+                question.pop("correct_answer")
+
+            result.append(quiz)
+
         return response
 
 
@@ -66,7 +79,7 @@ async def create_quizzes(quiz_answer: QuizAnswerSchema, token: str = Header(alia
         return r.json()
 
 
-@app.get("/quiz/check_answers")
+@app.get("/quiz/check_answers", response_model=list[GetQuizCheckAnswers])
 async def check_quiz_answers(quiz_id: int, token: str = Header(alias="Authorization"), user_id: str | None = None):
     headers = {}
     if token:

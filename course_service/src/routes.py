@@ -12,7 +12,28 @@ router = APIRouter(prefix="/courses")
 async def get_courses():
     async with async_session() as session:
         result = await session.execute(select(Course))
-        return result.scalars().all()
+        response = []
+        for course in result.scalars().all():
+            response.append({
+                "id": course.id,
+                "title": course.title,
+                "description": course.description,
+                "author": await UserClient().get_user(course.author_id)
+            })
+        return response
+
+
+@router.get("/{course_id}")
+async def get_courses(course_id: int):
+    async with async_session() as session:
+        course = (await session.execute(select(Course).where(Course.id == course_id))).scalar()
+        response = {
+            "id": course.id,
+            "title": course.title,
+            "description": course.description,
+            "author": await UserClient().get_user(course.author_id)
+        }
+        return response
 
 @router.post("", dependencies=[Depends(role_required("admin"))])
 async def create_course(course: CreateCourseSchema, author: dict = Depends(UserClient().get_user_by_token)):
