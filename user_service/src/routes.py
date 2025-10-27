@@ -42,3 +42,12 @@ async def get_me(token: str = Header(alias="Authorization")):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return {"id": user.id, "email": user.email, "role": user.role}
+
+
+@router.get("/{user_id}")
+async def get_user(user_id: int):
+    async with async_session() as session:
+        user = await session.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"id": user.id, "email": user.email, "role": user.role}

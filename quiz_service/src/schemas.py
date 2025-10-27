@@ -5,6 +5,7 @@ class QuestionSchema(BaseModel):
     id: int
     title: str
     answers: list[str]
+    correct_answer: str
 
 
 class BaseQuizSchema(BaseModel):

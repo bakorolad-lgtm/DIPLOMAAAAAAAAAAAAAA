@@ -28,14 +28,13 @@ async def get_courses():
 
 
 @app.get("/quiz")
-async def get_quizzes(token: str = Header(alias="Authorization")):
-    headers = {}
-    if token:
-        headers = {"Authorization": token}
-
+async def get_quizzes():
     async with httpx.AsyncClient() as client:
-        r = await client.get(f"{QUIZ_SERVICE}/quiz", headers=headers)
-        return r.json()
+        r = await client.get(f"{QUIZ_SERVICE}/quiz")
+        response = r.json()
+        response.pop("correct_answer")
+        return response
+
 
 @app.post("/quiz")
 async def create_quizzes(quiz: CreateQuizSchema, token: str = Header(alias="Authorization")):
@@ -48,7 +47,26 @@ async def create_quizzes(quiz: CreateQuizSchema, token: str = Header(alias="Auth
 
 
 @app.post("/quiz/answer")
-async def create_quizzes(quiz_answer: QuizAnswerSchema):
+async def create_quizzes(quiz_answer: QuizAnswerSchema, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
     async with httpx.AsyncClient() as client:
-        r = await client.post(f"{QUIZ_SERVICE}/quiz/answer", json=quiz_answer.model_dump())
+        r = await client.post(f"{QUIZ_SERVICE}/quiz/answer", json=quiz_answer.model_dump(), headers=headers)
+        return r.json()
+
+
+@app.get("/quiz/check_answers")
+async def check_quiz_answers(quiz_id: int, token: str = Header(alias="Authorization"), user_id: str | None = None):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    params = {
+        "quiz_id": quiz_id
+    }
+    if user_id:
+        params["user_id"] = user_id
+
+    async with httpx.AsyncClient() as client:
+        r = await client.get(f"{QUIZ_SERVICE}/quiz/check_answers", headers=headers, params=params)
         return r.json()
