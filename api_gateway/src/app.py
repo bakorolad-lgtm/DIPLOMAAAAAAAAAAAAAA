@@ -1,3 +1,4 @@
+from fastapi import Header
 from fastapi import FastAPI, Request
 import httpx
 
@@ -27,15 +28,22 @@ async def get_courses():
 
 
 @app.get("/quiz")
-async def get_quizzes():
+async def get_quizzes(token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+
     async with httpx.AsyncClient() as client:
-        r = await client.get(f"{QUIZ_SERVICE}/quiz")
+        r = await client.get(f"{QUIZ_SERVICE}/quiz", headers=headers)
         return r.json()
 
 @app.post("/quiz")
-async def create_quizzes(quiz: CreateQuizSchema):
+async def create_quizzes(quiz: CreateQuizSchema, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
     async with httpx.AsyncClient() as client:
-        r = await client.post(f"{QUIZ_SERVICE}/quiz", json=quiz.model_dump())
+        r = await client.post(f"{QUIZ_SERVICE}/quiz", json=quiz.model_dump(), headers=headers)
         return r.json()
 
 

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header
+import jwt
 from sqlalchemy.future import select
 from src.models import User
 from src.database import async_session
-from src.utils import hash_password, verify_password, create_token
+from src.utils import decode_token, hash_password, verify_password, create_token
 
 router = APIRouter(prefix="/auth")
 
@@ -14,6 +15,7 @@ async def register(email: str, password: str):
         await session.commit()
         return {"message": "User registered"}
 
+
 @router.post("/login")
 async def login(email: str, password: str):
     async with async_session() as session:
@@ -23,3 +25,20 @@ async def login(email: str, password: str):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         token = create_token(user.id, user.role)
         return {"token": token}
+
+
+@router.get("/me")
+async def get_me(token: str = Header(alias="Authorization")):
+    try:
+        payload = decode_token(token)
+        user_id = payload.get("id")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    async with async_session() as session:
+        user = await session.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"id": user.id, "email": user.email, "role": user.role}

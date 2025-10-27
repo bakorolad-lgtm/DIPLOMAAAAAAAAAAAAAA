@@ -1,4 +1,6 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.params import Depends
+from src.utils import role_required
 from src.schemas import CreateQuizSchema, QuizAnswerSchema
 from src.database import async_session
 from src.models import Quiz, QuizAnswers
@@ -12,7 +14,7 @@ async def get_quizzes():
         result = await session.execute(select(Quiz))
         return result.scalars().all()
 
-@router.post("")
+@router.post("", dependencies=[Depends(role_required("admin"))])
 async def create_quiz(quiz: CreateQuizSchema):
     async with async_session() as session:
         quiz = Quiz(
