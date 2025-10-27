@@ -2,7 +2,7 @@ from fastapi import Header
 from fastapi import FastAPI, Request
 import httpx
 
-from src.schemas import CreateQuizSchema, QuizAnswerSchema
+from src.schemas import CreateCourseSchema, CreateQuizSchema, QuizAnswerSchema
 
 app = FastAPI(title="API Gateway")
 
@@ -17,6 +17,16 @@ async def proxy_auth(path: str, request: Request):
     print(data)
     async with httpx.AsyncClient() as client:
         r = await client.post(f"{AUTH_SERVICE}/auth/{path}", params=data)
+        return r.json()
+
+
+@app.post("/courses")
+async def create_course(course: CreateCourseSchema, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.post(f"{COURSE_SERVICE}/courses", headers=headers, json=course.model_dump())
         return r.json()
 
 
