@@ -1,5 +1,8 @@
 import bcrypt
+from fastapi import Depends, HTTPException
 import jwt
+
+from src.clients.users import UserClient
 
 SECRET_KEY = "SECRET"
 
@@ -20,3 +23,11 @@ def create_token(user_id: int, role: str):
 
 def decode_token(token: str):    
     return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+
+
+def role_required(*roles):
+    def dependency(current_user=Depends(UserClient().get_user_by_token)):
+        if current_user["role"] not in roles:
+            raise HTTPException(403, "Not enough permissions")
+        return current_user
+    return dependency
