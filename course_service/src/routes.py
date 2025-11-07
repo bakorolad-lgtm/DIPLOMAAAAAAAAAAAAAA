@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import delete
 from src.utils import role_required
 from src.schemas import CreateCourseSchema
 from src.clients.users import UserClient
@@ -48,3 +49,9 @@ async def create_course(course: CreateCourseSchema, author: dict = Depends(UserC
             "description": course.description,
             "author": await UserClient().get_user(course.author_id)
         }
+
+@router.delete("/{course_id}", dependencies=[Depends(role_required("admin"))])
+async def delete_course(course_id: int):
+    async with async_session() as session:
+        await session.execute(delete(Course).where(Course.id == course_id))
+        await session.commit()

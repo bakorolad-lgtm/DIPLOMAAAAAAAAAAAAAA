@@ -6,7 +6,7 @@ export default function CreateQuizPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [questions, setQuestions] = useState([
-    { title: "", answers: [""], correct_answer: "" },
+    { id: 1, title: "", answers: [""], correct_answer: "" },
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,6 +23,13 @@ export default function CreateQuizPage() {
   const handleAnswerChange = (qIndex, aIndex, value) => {
     const updated = [...questions];
     updated[qIndex].answers[aIndex] = value;
+
+    // если удалили/изменили правильный ответ — сбросим его
+    const currentCorrect = updated[qIndex].correct_answer;
+    if (currentCorrect && !updated[qIndex].answers.includes(currentCorrect)) {
+      updated[qIndex].correct_answer = "";
+    }
+
     setQuestions(renumberQuestions(updated));
   };
 
@@ -62,8 +69,6 @@ export default function CreateQuizPage() {
       };
 
       const newQuiz = await createQuiz(quizData);
-
-      // Переходим на страницу созданного опроса
       navigate(`/quiz/${newQuiz.id}`, { state: { quiz: newQuiz } });
     } catch (err) {
       console.error(err);
@@ -91,7 +96,7 @@ export default function CreateQuizPage() {
 
         {questions.map((q, qIndex) => (
           <div
-            key={qIndex}
+            key={q.id}
             style={{
               border: "1px solid #ccc",
               padding: 10,
@@ -99,8 +104,10 @@ export default function CreateQuizPage() {
               borderRadius: 8,
             }}
           >
+            <h4>Вопрос #{q.id}</h4>
+
             <label>
-              Вопрос {qIndex + 1}:
+              Текст вопроса:
               <input
                 type="text"
                 value={q.title}
@@ -114,7 +121,7 @@ export default function CreateQuizPage() {
             <div style={{ marginTop: 10 }}>
               <strong>Ответы:</strong>
               {q.answers.map((a, aIndex) => (
-                <div key={aIndex}>
+                <div key={aIndex} style={{ marginTop: 5 }}>
                   <input
                     type="text"
                     value={a}
@@ -124,25 +131,30 @@ export default function CreateQuizPage() {
                     }
                     required
                   />
+
+                  <label style={{ marginLeft: 10 }}>
+                    <input
+                      type="radio"
+                      name={`correct_${q.id}`}
+                      value={a}
+                      checked={q.correct_answer === a}
+                      onChange={() =>
+                        handleQuestionChange(qIndex, "correct_answer", a)
+                      }
+                      disabled={!a.trim()}
+                    />
+                    Правильный
+                  </label>
                 </div>
               ))}
-              <button type="button" onClick={() => addAnswer(qIndex)}>
+
+              <button
+                type="button"
+                onClick={() => addAnswer(qIndex)}
+                style={{ marginTop: 10 }}
+              >
                 ➕ Добавить ответ
               </button>
-            </div>
-
-            <div style={{ marginTop: 10 }}>
-              <label>
-                Правильный ответ:
-                <input
-                  type="text"
-                  value={q.correct_answer}
-                  onChange={(e) =>
-                    handleQuestionChange(qIndex, "correct_answer", e.target.value)
-                  }
-                  required
-                />
-              </label>
             </div>
 
             <button

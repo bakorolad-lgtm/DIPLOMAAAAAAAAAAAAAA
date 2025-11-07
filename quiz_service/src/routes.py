@@ -6,7 +6,7 @@ from src.schemas import CreateQuizSchema, QuizAnswerSchema
 from src.database import async_session
 from src.models import Quiz, QuizAnswers
 # from sqlalchemy.future import select
-from sqlalchemy import distinct, select
+from sqlalchemy import delete, distinct, select
 
 router = APIRouter(prefix="/quiz")
 
@@ -135,3 +135,10 @@ async def check_quiz_answers(quiz_id: int, user: int = Depends(self_or_admin), u
                 })
 
         return result
+
+@router.delete("/{quiz_id}", dependencies=[Depends(role_required("admin"))])
+async def delete_quiz(quiz_id: int):
+    async with async_session() as session:
+        await session.execute(delete(QuizAnswers).where(QuizAnswers.quiz_id == quiz_id))
+        await session.execute(delete(Quiz).where(Quiz.id == quiz_id))
+        await session.commit()

@@ -20,14 +20,7 @@ function AppRoutes() {
   const { user, signOut, role } = useAuth();
 
   return (
-    <div className="container" style={{
-      backgroundColor: "#b7b7b7ff", // светло-серый фон
-      minHeight: "100vh", // растянуть на весь экран
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-    }}>
+    <div className="container" >
       <h1>Учебный портал</h1>
       {user && (
         <div style={{ marginBottom: 10 }}>
@@ -37,7 +30,6 @@ function AppRoutes() {
       {user && (
         <Tabs />
       )}
-      <h1>{role}</h1>
       <Routes>
         <Route
           path="/"
@@ -116,7 +108,7 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <Router>
+    <Router >
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>

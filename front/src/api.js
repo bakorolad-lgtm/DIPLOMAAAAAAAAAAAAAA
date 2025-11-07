@@ -38,6 +38,16 @@ export const createCourse = async (obj) => {
 }
 
 
+export const deleteCourse = async (course_id) => {
+  await api.delete(`/courses/${course_id}`);
+}
+
+
+export const deleteQuiz = async (quiz_id) => {
+  await api.delete(`/quiz/${quiz_id}`);
+}
+
+
 export const getCourse = async (course_id) => {
   const res = await api.get(`/courses/${course_id}`);
   return res.data;

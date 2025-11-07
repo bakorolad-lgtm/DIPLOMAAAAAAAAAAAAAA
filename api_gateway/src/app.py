@@ -18,7 +18,7 @@ async def proxy_auth(request: Request):
         r = await client.post(f"{AUTH_SERVICE}/auth/register", params=data)
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 @app.post("/auth/login")
@@ -28,7 +28,7 @@ async def proxy_auth(request: Request):
         r = await client.post(f"{AUTH_SERVICE}/auth/login", params=data)
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -41,7 +41,7 @@ async def proxy_auth(request: Request, token: str = Header(alias="Authorization"
         r = await client.get(f"{AUTH_SERVICE}/auth", headers=headers)
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -54,7 +54,7 @@ async def create_course(course: CreateCourseSchema, token: str = Header(alias="A
         r = await client.post(f"{COURSE_SERVICE}/courses", headers=headers, json=course.model_dump())
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -64,7 +64,7 @@ async def get_course(course_id):
         r = await client.get(f"{COURSE_SERVICE}/courses/{course_id}")
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 @app.get("/courses", response_model=list[GetCourseSchema])
@@ -73,7 +73,7 @@ async def get_courses():
         r = await client.get(f"{COURSE_SERVICE}/courses")
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -83,7 +83,7 @@ async def get_quizzes():
         r = await client.get(f"{QUIZ_SERVICE}/quiz")
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         response = r.json()
         print(response)
         print(type(response))
@@ -106,7 +106,7 @@ async def create_quizzes(quiz: CreateQuizSchema, token: str = Header(alias="Auth
         r = await client.post(f"{QUIZ_SERVICE}/quiz", json=quiz.model_dump(), headers=headers)
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -119,7 +119,7 @@ async def create_quizzes(quiz_answer: QuizAnswerSchema, token: str = Header(alia
         r = await client.post(f"{QUIZ_SERVICE}/quiz/answer", json=quiz_answer.model_dump(), headers=headers)
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -132,7 +132,7 @@ async def get_user_answers(user_id: int, token: str = Header(alias="Authorizatio
         r = await client.get(f"{QUIZ_SERVICE}/quiz/user/answers", params={"user_id": user_id}, headers=headers)
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 @app.get("/quiz/check_answers", response_model=list[GetQuizCheckAnswers])
@@ -150,5 +150,29 @@ async def check_quiz_answers(quiz_id: int, token: str = Header(alias="Authorizat
         r = await client.get(f"{QUIZ_SERVICE}/quiz/check_answers", headers=headers, params=params)
         if r.status_code != 200:
             print(r.json())
-            raise HTTPException(status_code=401, detail="Error")
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+@app.delete("/quiz/{quiz_id}")
+async def delete_quiz(quiz_id: int, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.delete(f"{QUIZ_SERVICE}/quiz/{quiz_id}", headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+@app.delete("/courses/{course_id}")
+async def delete_course(course_id: int, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.delete(f"{COURSE_SERVICE}/courses/{course_id}", headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
