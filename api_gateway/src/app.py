@@ -1,8 +1,8 @@
-from fastapi import Header
+from fastapi import HTTPException, Header
 from fastapi import FastAPI, Request
 import httpx
 
-from src.schemas import CreateCourseSchema, CreateQuizSchema, QuizAnswerSchema
+from src.schemas import CreateCourseSchema, CreateQuizSchema, GetCourseSchema, GetQuizCheckAnswers, GetQuizSchema, QuizAnswerSchema
 
 app = FastAPI(title="API Gateway")
 
@@ -11,12 +11,37 @@ COURSE_SERVICE = "http://course-service:8000"
 QUIZ_SERVICE = "http://quiz-service:8000"
 
 
-@app.post("/auth/{path:path}")
-async def proxy_auth(path: str, request: Request):
+@app.post("/auth/register")
+async def proxy_auth(request: Request):
     data = await request.json()
-    print(data)
     async with httpx.AsyncClient() as client:
-        r = await client.post(f"{AUTH_SERVICE}/auth/{path}", params=data)
+        r = await client.post(f"{AUTH_SERVICE}/auth/register", params=data)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+@app.post("/auth/login")
+async def proxy_auth(request: Request):
+    data = await request.json()
+    async with httpx.AsyncClient() as client:
+        r = await client.post(f"{AUTH_SERVICE}/auth/login", params=data)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+
+@app.get("/auth")
+async def proxy_auth(request: Request, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.get(f"{AUTH_SERVICE}/auth", headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -27,22 +52,48 @@ async def create_course(course: CreateCourseSchema, token: str = Header(alias="A
         headers = {"Authorization": token}
     async with httpx.AsyncClient() as client:
         r = await client.post(f"{COURSE_SERVICE}/courses", headers=headers, json=course.model_dump())
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
-@app.get("/courses")
+@app.get("/courses/{course_id}", response_model=GetCourseSchema)
+async def get_course(course_id):
+    async with httpx.AsyncClient() as client:
+        r = await client.get(f"{COURSE_SERVICE}/courses/{course_id}")
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+@app.get("/courses", response_model=list[GetCourseSchema])
 async def get_courses():
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{COURSE_SERVICE}/courses")
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
-@app.get("/quiz")
+@app.get("/quiz", response_model=list[GetQuizSchema])
 async def get_quizzes():
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{QUIZ_SERVICE}/quiz")
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         response = r.json()
-        response.pop("correct_answer")
+        print(response)
+        print(type(response))
+        result = []
+        for quiz in response:
+            for question in quiz["questions"]:
+                question.pop("correct_answer")
+
+            result.append(quiz)
+
         return response
 
 
@@ -53,6 +104,9 @@ async def create_quizzes(quiz: CreateQuizSchema, token: str = Header(alias="Auth
         headers = {"Authorization": token}
     async with httpx.AsyncClient() as client:
         r = await client.post(f"{QUIZ_SERVICE}/quiz", json=quiz.model_dump(), headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
@@ -63,10 +117,25 @@ async def create_quizzes(quiz_answer: QuizAnswerSchema, token: str = Header(alia
         headers = {"Authorization": token}
     async with httpx.AsyncClient() as client:
         r = await client.post(f"{QUIZ_SERVICE}/quiz/answer", json=quiz_answer.model_dump(), headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
 
-@app.get("/quiz/check_answers")
+@app.get("/quiz/user/answers")
+async def get_user_answers(user_id: int, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.get(f"{QUIZ_SERVICE}/quiz/user/answers", params={"user_id": user_id}, headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+@app.get("/quiz/check_answers", response_model=list[GetQuizCheckAnswers])
 async def check_quiz_answers(quiz_id: int, token: str = Header(alias="Authorization"), user_id: str | None = None):
     headers = {}
     if token:
@@ -79,4 +148,31 @@ async def check_quiz_answers(quiz_id: int, token: str = Header(alias="Authorizat
 
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{QUIZ_SERVICE}/quiz/check_answers", headers=headers, params=params)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+@app.delete("/quiz/{quiz_id}")
+async def delete_quiz(quiz_id: int, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.delete(f"{QUIZ_SERVICE}/quiz/{quiz_id}", headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+@app.delete("/courses/{course_id}")
+async def delete_course(course_id: int, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.delete(f"{COURSE_SERVICE}/courses/{course_id}", headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()

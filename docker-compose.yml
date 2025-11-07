@@ -8,6 +8,8 @@ services:
       - auth-service
       - course-service
       - quiz-service
+    volumes:
+      - ./api_gateway:/app
 
   auth-service:
     build: ./user_service
@@ -17,6 +19,8 @@ services:
       - DATABASE_URL=postgresql+asyncpg://user:pass@db-auth:5432/authdb
     depends_on:
       - db-auth
+    volumes:
+      - ./user_service:/app
 
   course-service:
     build: ./course_service
@@ -26,6 +30,8 @@ services:
       - DATABASE_URL=postgresql+asyncpg://user:pass@db-course:5432/coursedb
     depends_on:
       - db-course
+    volumes:
+      - ./course_service:/app
 
   quiz-service:
     build: ./quiz_service
@@ -35,6 +41,8 @@ services:
       - DATABASE_URL=postgresql+asyncpg://user:pass@db-quiz:5432/quizdb
     depends_on:
       - db-quiz
+    volumes:
+      - ./quiz_service:/app
 
   db-auth:
     image: postgres

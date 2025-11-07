@@ -5,7 +5,8 @@ from src.utils import role_required, self_or_admin
 from src.schemas import CreateQuizSchema, QuizAnswerSchema
 from src.database import async_session
 from src.models import Quiz, QuizAnswers
-from sqlalchemy.future import select
+# from sqlalchemy.future import select
+from sqlalchemy import delete, distinct, select
 
 router = APIRouter(prefix="/quiz")
 
@@ -24,7 +25,12 @@ async def create_quiz(quiz: CreateQuizSchema):
         )
         session.add(quiz)
         await session.commit()
-        return {"message": "Quiz created"}
+        await session.refresh(quiz)
+        return {
+            "id": quiz.id,
+            "title": quiz.title,
+            "questions": quiz.questions
+        }
 
 
 @router.post("/answer")
@@ -62,6 +68,33 @@ async def answer_quiz(quiz_answer: QuizAnswerSchema, user: dict = Depends(UserCl
             session.add(quiz_answer)
         await session.commit()
         return {"message": "Quiz answered"}
+
+
+@router.get("/user/answers", dependencies=[Depends(role_required("admin"))])
+async def get_user_answers(user_id: int):
+    async with async_session() as session:
+        # filtered_quizes = (await session.execute(
+        #     select(distinct(Quiz.id), Quiz.title)
+        #     .join(QuizAnswers, Quiz.id == QuizAnswers.quiz_id)
+        #     .where(
+        #         QuizAnswers.user_id == user_id
+        #     )
+        # )).scalars()
+        filtered_quizes = (await session.execute(
+            select(distinct(Quiz.id), Quiz.title)
+            .join(QuizAnswers, Quiz.id == QuizAnswers.quiz_id)
+            .where(
+                QuizAnswers.user_id == user_id
+            )
+        )).all()
+        response = []
+        print(filtered_quizes)
+        for quiz in filtered_quizes:
+            response.append({
+                "id": quiz[0],
+                "title": quiz[1]
+            })
+        return response
 
 
 @router.get("/check_answers")
@@ -102,3 +135,10 @@ async def check_quiz_answers(quiz_id: int, user: int = Depends(self_or_admin), u
                 })
 
         return result
+
+@router.delete("/{quiz_id}", dependencies=[Depends(role_required("admin"))])
+async def delete_quiz(quiz_id: int):
+    async with async_session() as session:
+        await session.execute(delete(QuizAnswers).where(QuizAnswers.quiz_id == quiz_id))
+        await session.execute(delete(Quiz).where(Quiz.id == quiz_id))
+        await session.commit()

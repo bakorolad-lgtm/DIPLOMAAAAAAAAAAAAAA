@@ -3,7 +3,7 @@ import jwt
 from sqlalchemy.future import select
 from src.models import User
 from src.database import async_session
-from src.utils import decode_token, hash_password, verify_password, create_token
+from src.utils import decode_token, hash_password, role_required, verify_password, create_token
 
 router = APIRouter(prefix="/auth")
 
@@ -21,10 +21,13 @@ async def login(email: str, password: str):
     async with async_session() as session:
         result = await session.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
+        print(email)
+        print(password)
+        print(verify_password(password, user.password))
         if not user or not verify_password(password, user.password):
             raise HTTPException(status_code=401, detail="Invalid credentials")
         token = create_token(user.id, user.role)
-        return {"token": token}
+        return {"token": token, "role": user.role}
 
 
 @router.get("/me")
@@ -42,6 +45,14 @@ async def get_me(token: str = Header(alias="Authorization")):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return {"id": user.id, "email": user.email, "role": user.role}
+
+
+@router.get("", dependencies=[Depends(role_required("admin"))])
+async def get_users():
+    async with async_session() as session:
+        result = await session.execute(select(User).where(User.role == "student"))
+        users = result.scalars().all()
+        return [{"id": user.id, "email": user.email, "role": user.role} for user in users]
 
 
 @router.get("/{user_id}")

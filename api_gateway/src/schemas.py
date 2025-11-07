@@ -5,7 +5,7 @@ class QuestionSchema(BaseModel):
     id: int
     title: str
     answers: list[str]
-    correct_answer: str
+    correct_answer: str | None = None
 
 
 class BaseQuizSchema(BaseModel):
@@ -31,6 +31,20 @@ class QuizAnswerSchema(BaseModel):
     answers: list[AnswerSchema]
 
 
-class CreateCourseSchema(BaseModel):
+class BaseCourseSchema(BaseModel):
     title: str
     description: str
+
+class CreateCourseSchema(BaseCourseSchema):
+    pass
+
+
+class GetCourseSchema(BaseCourseSchema):
+    id: int
+    author: dict
+
+
+class GetQuizCheckAnswers(BaseModel):
+    title: str
+    answers: list[str]
+    is_correct: bool
