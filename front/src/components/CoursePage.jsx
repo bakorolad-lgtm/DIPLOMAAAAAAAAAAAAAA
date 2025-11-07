@@ -8,6 +8,8 @@ export default function CoursePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("Course page")
+    console.log(id)
     async function load() {
       const course = await getCourse(id);
       setCourse(course);

@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams  } from "react-router-dom";
 import { getQuizzes, getQuizCheckAnswers, sendQuizAnswers } from "../api";
 import { useAuth } from "../context/AuthContext";
 
 export default function QuizPage() {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const userIdParam = searchParams.get("user_id");
 
   useEffect(() => {
     async function load() {
@@ -17,13 +19,13 @@ export default function QuizPage() {
       const q = all.find((x) => x.id === parseInt(id));
       setQuiz(q);
       try {
-        const check = await getQuizCheckAnswers(q.id, user);
+        const check = await getQuizCheckAnswers(q.id, userIdParam);
         if (check.length > 0) setResults(check);
       } catch {}
       setLoading(false);
     }
     load();
-  }, [id, user]);
+  }, [id, userIdParam]);
 
   const handleChange = (qid, ans) => setAnswers((a) => ({ ...a, [qid]: ans }));
 
@@ -75,7 +77,9 @@ export default function QuizPage() {
               ))}
             </div>
           ))}
-          <button type="submit">Отправить</button>
+          { role === "student" && (
+            <button type="submit">Отправить</button>
+          )}
         </form>
       )}
     </div>

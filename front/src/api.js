@@ -32,20 +32,47 @@ export const getCourses = async () => {
 };
 
 
+export const createCourse = async (obj) => {
+  const res = await api.post("/courses", obj);
+  return res.data;
+}
+
+
 export const getCourse = async (course_id) => {
   const res = await api.get(`/courses/${course_id}`);
   return res.data;
 };
 
+
+export const getUsers = async () => {
+  const res = await api.get(`/auth`);
+  return res.data;
+};
+
 // ===== ТЕСТЫ =====
+
+export const createQuiz = async (obj) => {
+  const res = await api.post("/quiz", obj);
+  return res.data;
+};
+
 export const getQuizzes = async () => {
   const res = await api.get("/quiz");
   return res.data;
 };
 
-export const getQuizCheckAnswers = async (quiz_id) => {
+export const getQuizCheckAnswers = async (quiz_id, user_id) => {
+  const params = { quiz_id };
+  if (user_id) params.user_id = user_id;
   const res = await api.get("/quiz/check_answers", {
-    params: { quiz_id },
+    params,
+  });
+  return res.data;
+};
+
+export const getUserAnswers = async (user_id) => {
+  const res = await api.get("/quiz/user/answers", {
+    params: { user_id },
   });
   return res.data;
 };

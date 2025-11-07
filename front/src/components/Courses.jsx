@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getCourses } from "../api";
+import { useAuth } from "../context/AuthContext";
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
+  const { role } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getCourses().then(setCourses);
@@ -17,6 +20,10 @@ export default function Courses() {
   return (
     <div>
       <h2>Курсы</h2>
+      { role === "admin" && (
+          <button type="button" onClick={() => navigate("/courses/new")}>Создать</button>
+        )
+      }
       {courses.length === 0 && <p>Нет курсов</p>}
       <ul>
         {courses.map((c, i) => (

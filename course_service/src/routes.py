@@ -41,4 +41,10 @@ async def create_course(course: CreateCourseSchema, author: dict = Depends(UserC
         course = Course(title=course.title, description=course.description, author_id=author["id"])
         session.add(course)
         await session.commit()
-        return {"message": "Course created"}
+        await session.refresh(course)
+        return {
+            "id": course.id,
+            "title": course.title,
+            "description": course.description,
+            "author": await UserClient().get_user(course.author_id)
+        }

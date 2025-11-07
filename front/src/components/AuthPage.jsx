@@ -27,7 +27,14 @@ export default function AuthPage() {
   };
 
   return (
-    <div>
+    <div style={{
+      backgroundColor: "#bbbbbbff", // светло-серый фон
+      minHeight: "100vh", // растянуть на весь экран
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+    }}>
       <h2>{mode === "login" ? "Вход" : "Регистрация"}</h2>
 
       <div style={{ marginBottom: 20 }}>
