@@ -62,3 +62,14 @@ async def get_user(user_id: int):
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return {"id": user.id, "email": user.email, "role": user.role}
+
+
+@router.patch("/{user_id}")
+async def update_user(user_id: int, role: str, dependencies=[Depends(role_required("admin"))]):
+    async with async_session() as session:
+        user = await session.get(User, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        user.role = role
+        await session.commit()
+        return {"id": user.id, "email": user.email, "role": user.role}

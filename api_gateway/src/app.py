@@ -12,7 +12,7 @@ QUIZ_SERVICE = "http://quiz-service:8000"
 
 
 @app.post("/auth/register")
-async def proxy_auth(request: Request):
+async def register(request: Request):
     data = await request.json()
     async with httpx.AsyncClient() as client:
         r = await client.post(f"{AUTH_SERVICE}/auth/register", params=data)
@@ -22,7 +22,7 @@ async def proxy_auth(request: Request):
         return r.json()
 
 @app.post("/auth/login")
-async def proxy_auth(request: Request):
+async def login(request: Request):
     data = await request.json()
     async with httpx.AsyncClient() as client:
         r = await client.post(f"{AUTH_SERVICE}/auth/login", params=data)
@@ -33,12 +33,25 @@ async def proxy_auth(request: Request):
 
 
 @app.get("/auth")
-async def proxy_auth(request: Request, token: str = Header(alias="Authorization")):
+async def get_users(request: Request, token: str = Header(alias="Authorization")):
     headers = {}
     if token:
         headers = {"Authorization": token}
     async with httpx.AsyncClient() as client:
         r = await client.get(f"{AUTH_SERVICE}/auth", headers=headers)
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
+
+
+@app.patch("/auth/{user_id}/make_admin")
+async def make_user_user(user_id: int, role: str, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.patch(f"{AUTH_SERVICE}/auth/{user_id}", params={"role": role}, headers=headers)
         if r.status_code != 200:
             print(r.json())
             raise HTTPException(status_code=r.status_code, detail="Error")
