@@ -59,6 +59,11 @@ export const getUsers = async () => {
   return res.data;
 };
 
+export const updateUserRole = async (user_id, role) => {
+  const res = await api.patch(`/auth/${user_id}/make_admin?role=${role}`);
+  return res.data;
+};
+
 // ===== ТЕСТЫ =====
 
 export const createQuiz = async (obj) => {
