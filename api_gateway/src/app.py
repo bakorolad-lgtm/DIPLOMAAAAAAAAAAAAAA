@@ -4,7 +4,7 @@ import httpx
 
 from src.schemas import CreateCourseSchema, CreateQuizSchema, GetCourseSchema, GetQuizCheckAnswers, GetQuizSchema, QuizAnswerSchema
 
-app = FastAPI(title="API Gateway")
+app = FastAPI(title="API Gateway", root_path="/api")
 
 AUTH_SERVICE = "http://auth-service:8000"
 COURSE_SERVICE = "http://course-service:8000"

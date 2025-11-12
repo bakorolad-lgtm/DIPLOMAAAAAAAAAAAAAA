@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "/"; // замени на свой адрес
+const API_URL = "/api"; // замени на свой адрес
 
 export const api = axios.create({
   baseURL: API_URL,

@@ -63,43 +63,38 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        {role === "admin" && (
-          <>
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute>
-                  <Users />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/quiz/user/answers/:id"
-              element={
-                <ProtectedRoute>
-                  <UsersAnswersPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/courses/new"
-              element = {
-                <ProtectedRoute>
-                  <CreateCoursePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/quiz/new"
-              element = {
-                <ProtectedRoute>
-                  <CreateQuizPage />
-                </ProtectedRoute>
-              }
-            />
-          </>
-        )}
-        
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Users />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quiz/user/answers/:id"
+          element={
+            <ProtectedRoute>
+              <UsersAnswersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courses/new"
+          element = {
+            <ProtectedRoute>
+              <CreateCoursePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/quiz/new"
+          element = {
+            <ProtectedRoute>
+              <CreateQuizPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/auth" element={<AuthPage />} />
       </Routes>
     </div>
