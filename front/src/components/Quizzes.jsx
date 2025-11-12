@@ -47,6 +47,7 @@ export default function Quizzes() {
           Создать
         </button>
       )}
+      {users.length === 0 && <p>Нет тестов</p>}
 
       <ul style={{ listStyle: "none", padding: 0 }}>
         {quizzes.map((q) => (
