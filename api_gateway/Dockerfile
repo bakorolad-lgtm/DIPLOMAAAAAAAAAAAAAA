@@ -22,4 +22,4 @@ COPY . .
 
 # ---- Запуск приложения ----
 EXPOSE 8005
-CMD ["uv", "run", "uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8005", "--reload"]
+CMD ["uv", "run", "uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
