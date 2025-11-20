@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Header
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, UploadFile
 import httpx
 
 from src.schemas import CreateCourseSchema, CreateQuizSchema, GetCourseSchema, GetQuizCheckAnswers, GetQuizSchema, QuizAnswerSchema
@@ -9,6 +9,7 @@ app = FastAPI(title="API Gateway", root_path="/api")
 AUTH_SERVICE = "http://auth-service:8000"
 COURSE_SERVICE = "http://course-service:8000"
 QUIZ_SERVICE = "http://quiz-service:8000"
+S3_SERVICE = "http://s3-service:8000"
 
 
 @app.post("/auth/register")
@@ -70,6 +71,22 @@ async def create_course(course: CreateCourseSchema, token: str = Header(alias="A
             raise HTTPException(status_code=r.status_code, detail="Error")
         return r.json()
 
+
+@app.post("/courses/upload_file")
+async def upload_image(file: UploadFile, token: str = Header(alias="Authorization")):
+    headers = {}
+    if token:
+        headers = {"Authorization": token}
+    async with httpx.AsyncClient() as client:
+        r = await client.post(
+            f"{S3_SERVICE}/files",
+            headers=headers,
+            files={"file": (file.filename, file.file, file.content_type)}
+        )
+        if r.status_code != 200:
+            print(r.json())
+            raise HTTPException(status_code=r.status_code, detail="Error")
+        return r.json()
 
 @app.get("/courses/{course_id}", response_model=GetCourseSchema)
 async def get_course(course_id):

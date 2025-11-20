@@ -8,6 +8,7 @@ services:
       - auth-service
       - course-service
       - quiz-service
+      - minio-files
     volumes:
       - ./api_gateway:/app
 
@@ -30,6 +31,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://user:pass@db-course:5432/coursedb
     depends_on:
       - db-course
+      - minio-files
     volumes:
       - ./course_service:/app
 
@@ -43,6 +45,15 @@ services:
       - db-quiz
     volumes:
       - ./quiz_service:/app
+
+  s3-service:
+    build: ./s3_service
+    ports:
+      - "8004:8000"
+    depends_on:
+      - db-quiz
+    volumes:
+      - ./s3_service:/app
 
   db-auth:
     image: postgres
@@ -76,3 +87,15 @@ services:
       - "5435:5432"
     volumes:
       - ./data/db-quiz:/var/lib/postgresql/data/pgdata
+
+  minio-files:
+    image: minio/minio:latest
+    container_name: minio-files
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9003"
+    ports:
+      - "9002:9000"     # S3 API
+      - "9003:9003"     # Web-console
