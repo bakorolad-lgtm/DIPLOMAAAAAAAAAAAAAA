@@ -1,30 +1,19 @@
-# import asyncio
-# from sqlalchemy import distinct, select
-# from quiz_service.src.database import async_session
-# from quiz_service.src.models import Quiz, QuizAnswers
-
-# async def main():
-#     user_id = 2
-#     async with async_session() as session:
-#         filtered_quizes = (await session.execute(
-#             select(distinct(Quiz.id), Quiz.title)
-#             .join(QuizAnswers, Quiz.id == QuizAnswers.quiz_id)
-#             .where(
-#                 QuizAnswers.user_id == user_id
-#             )
-#         )).scalars()
-#         print(list(filtered_quizes))
-
-# if __name__ == "__main__":
-#     asyncio.run(main())
+from fastapi import UploadFile, FastAPI
+import httpx
 
 
+app = FastAPI(title="API Gateway")
 
 
+S3_SERVICE = "http://localhost:8000"
 
-from user_service.src.utils import verify_password
-
-
-bd_pass = "$2b$12$HGRLLbvmhy1jPc3S8JxPUeg56gD4d7IVD.XIsY5m8mTQobcNF5YeO"
-
-print(verify_password("1234567890", bd_pass))
+@app.get("/send")
+async def send_file():
+    with open("pyproject.toml", "rb") as f:
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                f"{S3_SERVICE}/courses/upload_file",
+                headers={"Authorization": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwicm9sZSI6ImFkbWluIn0.vYDiTa3iYSO-KGYfvn9jOrjEJIyd70-sui3AqkDxXTs"},
+                files={"file": ("pyproject.toml", f.read(), "text/plain")}
+            )
+            print(r.json())
