@@ -69,7 +69,7 @@ export default function CreateCoursePage() {
           </label>
         </div>
 
-        <h3>Блоки</h3>
+        <h3>Данные</h3>
         {blocks.map(block => (
           <div key={block.id} style={{ border: "1px solid #ccc", padding: 10, marginBottom: 10 }}>
             <select value={block.type} onChange={e => updateBlock(block.id, block.content, e.target.value)}>
@@ -103,7 +103,7 @@ export default function CreateCoursePage() {
         ))}
 
         <div>
-          <button type="button" onClick={() => addBlock("text")}>Добавить текст</button>
+          <button type="button" onClick={() => addBlock("text")} style={{marginBottom:10}}>Добавить текст</button>
         </div>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
