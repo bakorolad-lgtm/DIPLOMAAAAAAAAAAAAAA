@@ -41,7 +41,7 @@ class CourseBlockSchema(BaseModel):
     def check_text_or_file_url(cls, values):
         if "text" not in values and "file_url" not in values:
             raise ValueError("Either 'text' or 'file_url' must be provided.")
-        if "text" in values and "file_url" in values:
+        if "text" in values and "file_url" in values and values["text"] and values["file_url"]:
             raise ValueError("Only 'text' or 'file_url' must be provided.")
         return values
 

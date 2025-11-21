@@ -1,3 +1,4 @@
+// Updated Courses list and CoursePage components
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getCourses, deleteCourse } from "../api";
@@ -38,11 +39,6 @@ export default function Courses() {
     setCourseToDelete(null);
   };
 
-  const truncate = (text, maxLength = 50) => {
-    if (!text) return "";
-    return text.length > maxLength ? text.slice(0, maxLength) + "…" : text;
-  };
-
   return (
     <div>
       <h2>Курсы</h2>
@@ -67,7 +63,7 @@ export default function Courses() {
               border: "1px solid #ccc",
               borderRadius: "6px",
               padding: "8px 12px",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
             }}
           >
             <div>
@@ -77,9 +73,6 @@ export default function Courses() {
               >
                 {c.title}
               </Link>
-              <div style={{ color: "#555", fontSize: "0.9em" }}>
-                {truncate(c.description, 50)}
-              </div>
             </div>
 
             {role === "admin" && (

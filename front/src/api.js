@@ -96,3 +96,19 @@ export const sendQuizAnswers = async (quiz_id, answers) => {
   const res = await api.post("/quiz/answer", { quiz_id, answers });
   return res.data;
 };
+
+// ===== UFDYJ =====
+export const uploadFile = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await api.post("/courses/upload_file", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return res.data; 
+  // Ожидается ответ вида:
+  // { file_url: "http://localhost:9002/minio-files/4/pyproject.toml" }
+};

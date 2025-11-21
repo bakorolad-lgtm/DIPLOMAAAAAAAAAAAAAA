@@ -1,7 +1,8 @@
+from collections import defaultdict
 from fastapi import APIRouter, Depends
 from sqlalchemy import delete
 from src.utils import role_required
-from src.schemas import CreateCourseSchema
+from src.schemas import CourseBlockSchema, CreateCourseSchema
 from src.clients.users import UserClient
 from src.database import async_session
 from src.models import Course, CourseBlock
@@ -13,12 +14,22 @@ router = APIRouter(prefix="/courses")
 async def get_courses():
     async with async_session() as session:
         result = await session.execute(select(Course))
+        blocks = await session.execute(select(CourseBlock))
+        mapped_blocks = defaultdict(list)
+        for block in blocks.scalars().all():
+            mapped_blocks[block.course_id].append(CourseBlockSchema(
+                text=block.text,
+                file_url=block.file_url,
+                course_id=block.course_id,
+                elem_number=block.elem_number
+            ))
+
         response = []
         for course in result.scalars().all():
             response.append({
                 "id": course.id,
                 "title": course.title,
-                "description": course.description,
+                "blocks": sorted(mapped_blocks[course.id], key=lambda block: block.elem_number),
                 "author": await UserClient().get_user(course.author_id)
             })
         return response
@@ -28,13 +39,21 @@ async def get_courses():
 async def get_courses(course_id: int):
     async with async_session() as session:
         course = (await session.execute(select(Course).where(Course.id == course_id))).scalar()
+        blocks = await session.execute(select(CourseBlock).where(CourseBlock.course_id == course_id))
+        blocks = [CourseBlockSchema(
+            text=block.text,
+            file_url=block.file_url,
+            course_id=block.course_id,
+            elem_number=block.elem_number
+        ) for block in blocks.scalars().all()]
         response = {
             "id": course.id,
             "title": course.title,
-            "description": course.description,
+            "blocks": sorted(blocks, key=lambda block: block.elem_number),
             "author": await UserClient().get_user(course.author_id)
         }
         return response
+
 
 @router.post("", dependencies=[Depends(role_required("admin"))])
 async def create_course(course: CreateCourseSchema, author: dict = Depends(UserClient().get_user_by_token)):

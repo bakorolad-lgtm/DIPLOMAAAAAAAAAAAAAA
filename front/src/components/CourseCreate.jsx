@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createCourse } from "../api";
+import { createCourse, uploadFile } from "../api";
 
 export default function CreateCoursePage() {
   const navigate = useNavigate();
@@ -25,11 +25,24 @@ export default function CreateCoursePage() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    
+    // Загрузка файлов перед созданием курса
+    const processedBlocks = [];
+    for (const b of blocks) {
+      console.log(b.content)
+      console.log(b.content instanceof File)
+      if (b.type === "text") {
+        processedBlocks.push({ text: b.content });
+      } else if ((b.type === "image" || b.type === "video") && b.content instanceof File) {
+        const uploaded = await uploadFile(b.content);
+        processedBlocks.push({ file_url: uploaded.file_url });
+      }
+    }
 
     try {
       const newCourse = await createCourse({
         title,
-        blocks
+        blocks: processedBlocks
       });
       navigate(`/course/${newCourse.id}`);
     } catch (err) {
@@ -56,7 +69,7 @@ export default function CreateCoursePage() {
           </label>
         </div>
 
-        <h3>Текст курса</h3>
+        <h3>Блоки</h3>
         {blocks.map(block => (
           <div key={block.id} style={{ border: "1px solid #ccc", padding: 10, marginBottom: 10 }}>
             <select value={block.type} onChange={e => updateBlock(block.id, block.content, e.target.value)}>
@@ -90,7 +103,7 @@ export default function CreateCoursePage() {
         ))}
 
         <div>
-          <button type="button" onClick={() => addBlock("text")} style={{marginBottom:10}}>Добавить</button>
+          <button type="button" onClick={() => addBlock("text")}>Добавить текст</button>
         </div>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
