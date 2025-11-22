@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   const signUp = async (username, password) => {
     console.log("Signup")
     const data = await register(username, password);
-    setToken(`Bearer ${data.access_token}`);
+    setToken(`${data.access_token}`);
     setUser(username);
     setRole(data.role);
   };
