@@ -20,8 +20,15 @@ function AppRoutes() {
   const { user, signOut, role } = useAuth();
 
   return (
-    <div className="container" >
-      <h1>Учебный портал</h1>
+    <div className="container" style={{
+      minHeight: "95.7vh",
+      boxShadow: "0 4px 8px rgba(0, 0, 0, 0.5)",
+      backdropFilter: "blur(10px)",
+      backgroundColor: "rgba(255, 255, 255, 0.29)",
+      padding: "20px",
+      wordBreak: "break-word",
+    }}>
+      <h1 style={{textAlign: "center"}}>Учебный портал</h1>
       {user && (
         <div style={{ marginBottom: 10 }}>
           Привет, {user}! <button onClick={signOut}>Выйти</button>

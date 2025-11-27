@@ -80,6 +80,7 @@ export default function Users() {
                   borderRadius: 4,
                   padding: "6px 10px",
                   cursor: "pointer",
+                  whiteSpace: "nowrap",
                 }}
               >
                 Сделать администратором

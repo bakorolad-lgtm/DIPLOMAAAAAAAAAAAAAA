@@ -89,6 +89,7 @@ export default function CreateQuizPage() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              maxLength={120}
               required
             />
           </label>

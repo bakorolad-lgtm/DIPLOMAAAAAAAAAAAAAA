@@ -4,10 +4,13 @@ body {
   background-color: rgb(175, 176, 192);
   min-height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex-direction: column;
   box-sizing: border-box;
+
+  background-image: url("assets/background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   
 }
 a {

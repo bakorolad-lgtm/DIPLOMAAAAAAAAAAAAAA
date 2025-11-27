@@ -64,7 +64,7 @@ export default function Quizzes() {
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)"
             }}
           >
-            <Link to={`/quiz/${q.id}`} style={{ textDecoration: "none" }}>
+            <Link to={`/quiz/${q.id}`} style={{ textDecoration: "none", color: "black" }}>
               {q.title}
             </Link>
 
@@ -80,6 +80,7 @@ export default function Quizzes() {
                   borderRadius: 4,
                   padding: "4px 8px",
                   cursor: "pointer",
+                  whiteSpace: "nowrap",
                 }}
               >
                 Удалить

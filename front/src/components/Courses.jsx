@@ -69,7 +69,7 @@ export default function Courses() {
             <div>
               <Link
                 to={`/course/${c.id}`}
-                style={{ fontWeight: "bold", textDecoration: "none" }}
+                style={{ fontWeight: "bold", textDecoration: "none", color: "black" }}
               >
                 {c.title}
               </Link>
@@ -87,6 +87,7 @@ export default function Courses() {
                   borderRadius: 4,
                   padding: "4px 8px",
                   cursor: "pointer",
+                  whiteSpace: "nowrap",
                 }}
               >
                 Удалить
